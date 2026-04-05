@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import { unstable_noStore as noStore } from 'next/cache';
 import { db } from '@/lib/db';
 import { contacts } from '@/lib/db/schema';
 import { desc } from 'drizzle-orm';
@@ -10,6 +11,7 @@ function fmt(d: Date | null, opts?: Intl.DateTimeFormatOptions) {
 }
 
 export default async function ContactsPage() {
+  noStore();
   const rows = await db
     .select()
     .from(contacts)
