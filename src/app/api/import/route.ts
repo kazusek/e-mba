@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Papa from 'papaparse';
-import { and, eq, gte } from 'drizzle-orm';
+import { and, eq, gte, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { contacts, csvImports, emailAutomations, emailSendLogs } from '@/lib/db/schema';
 import { parseRows, SUPPORTED_IMPORT_TYPES } from '@/lib/csv/parsers';
@@ -69,7 +69,11 @@ export async function POST(request: NextRequest) {
 
       // Build the update set — only include fields present in this contact record
       // so we don't overwrite data from a previous import with nulls
-      const updateSet: Record<string, unknown> = { updatedAt: now };
+      const updateSet: Record<string, unknown> = {
+        updatedAt: now,
+        // Append importType to listTags array (deduplicated), preserving existing tags
+        listTags: sql`ARRAY(SELECT DISTINCT UNNEST(COALESCE(${contacts.listTags}, ARRAY[]::text[]) || ARRAY[${importType}]::text[]))`,
+      };
       if (contact.firstName !== undefined) updateSet.firstName = contact.firstName;
       if (contact.lastName !== undefined) updateSet.lastName = contact.lastName;
       if (contact.optIn !== undefined) updateSet.optIn = contact.optIn;
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
 
       await db
         .insert(contacts)
-        .values({ ...contact, importedAt: now, updatedAt: now })
+        .values({ ...contact, listTags: [importType], importedAt: now, updatedAt: now })
         .onConflictDoUpdate({
           target: contacts.email,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

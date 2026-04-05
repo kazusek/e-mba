@@ -55,6 +55,13 @@ function buildCondition(c: Condition): SQL | null {
       if (op === 'lte')
         return sql`(${contacts.joinedAt} IS NOT NULL AND date_part('day', NOW() - ${contacts.joinedAt}) <= ${value})`;
       break;
+
+    case 'listTag':
+      if (op === 'contains') return sql`(${contacts.listTags} @> ARRAY[${value}]::text[])`;
+      if (op === 'not_contains') return sql`(${contacts.listTags} IS NULL OR NOT (${contacts.listTags} @> ARRAY[${value}]::text[]))`;
+      if (op === 'is_empty') return sql`(${contacts.listTags} IS NULL OR ${contacts.listTags} = '{}')`;
+      if (op === 'is_not_empty') return sql`(${contacts.listTags} IS NOT NULL AND ${contacts.listTags} != '{}')`;
+      break;
   }
 
   return null;
@@ -72,7 +79,10 @@ export async function evaluateAudience(rules: AudienceRules): Promise<{
 
   if (!clauses.length) return { rows: [], count: 0 };
 
-  const where = rules.operator === 'AND' ? and(...clauses) : or(...clauses);
+  const archivedFilter = eq(contacts.archived, false);
+  const where = rules.operator === 'AND'
+    ? and(archivedFilter, ...clauses)
+    : and(archivedFilter, or(...clauses));
 
   const rows = await db
     .select({

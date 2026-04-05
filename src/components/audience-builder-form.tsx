@@ -36,7 +36,7 @@ function newRow(field = 'totalVisits'): ConditionRow {
   };
 }
 
-const VALUE_NEEDS_INPUT: RuleOp[] = ['eq', 'not_eq', 'gte', 'lte'];
+const VALUE_NEEDS_INPUT: RuleOp[] = ['eq', 'not_eq', 'gte', 'lte', 'contains', 'not_contains'];
 
 export default function AudienceBuilderForm({ initialData }: Props) {
   const router = useRouter();
@@ -417,6 +417,20 @@ function ValueInput({
   inputClass: string;
   selectClass: string;
 }) {
+  if (fieldDef?.options) {
+    return (
+      <select
+        value={String(value ?? fieldDef.options[0].value)}
+        onChange={(e) => onChange(e.target.value)}
+        className={selectClass}
+      >
+        {fieldDef.options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    );
+  }
+
   if (fieldDef?.type === 'boolean') {
     return (
       <select

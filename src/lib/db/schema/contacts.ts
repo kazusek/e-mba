@@ -62,6 +62,10 @@ export const contacts = pgTable(
     membershipName: varchar('membership_name', { length: 255 }),
     membershipStartDate: timestamp('membership_start_date', { withTimezone: true }),
     membershipEndDate: timestamp('membership_end_date', { withTimezone: true }),
+    // Which import lists this contact has appeared in (accumulates across imports)
+    listTags: text('list_tags').array(),
+    // Archived contacts are excluded from audience evaluation but kept in the DB
+    archived: boolean('archived').default(false).notNull(),
     importedAt: timestamp('imported_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },

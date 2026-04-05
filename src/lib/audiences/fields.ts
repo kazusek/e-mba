@@ -1,4 +1,4 @@
-export type RuleOp = 'eq' | 'not_eq' | 'gte' | 'lte' | 'is_empty' | 'is_not_empty';
+export type RuleOp = 'eq' | 'not_eq' | 'gte' | 'lte' | 'is_empty' | 'is_not_empty' | 'contains' | 'not_contains';
 export type RuleOperator = 'AND' | 'OR';
 
 export type Condition = {
@@ -18,6 +18,15 @@ export type FieldDef = {
   type: 'boolean' | 'number' | 'string';
   ops: RuleOp[];
   hint?: string;
+  options?: { label: string; value: string }[];
+};
+
+export const LIST_TAG_LABELS: Record<string, string> = {
+  new_clients: 'New Clients',
+  active_memberships: 'Active Memberships',
+  lapsed_clients: 'Lapsed Clients',
+  frequent_clients: 'Frequent Clients',
+  client_credit: 'Client Credit',
 };
 
 export const AUDIENCE_FIELDS: FieldDef[] = [
@@ -61,6 +70,13 @@ export const AUDIENCE_FIELDS: FieldDef[] = [
     ops: ['gte', 'lte'],
     hint: 'e.g. ≤ 30 for new clients',
   },
+  {
+    value: 'listTag',
+    label: 'Source list',
+    type: 'string',
+    ops: ['contains', 'not_contains', 'is_empty', 'is_not_empty'],
+    options: Object.entries(LIST_TAG_LABELS).map(([value, label]) => ({ value, label })),
+  },
 ];
 
 export const OP_LABELS: Record<RuleOp, string> = {
@@ -70,12 +86,15 @@ export const OP_LABELS: Record<RuleOp, string> = {
   lte: '≤',
   is_empty: 'is empty',
   is_not_empty: 'is not empty',
+  contains: 'includes',
+  not_contains: 'does not include',
 };
 
 /** Returns the default value for a newly-added condition on the given field. */
 export function defaultValueForField(fieldValue: string): string | number | boolean | null {
   const def = AUDIENCE_FIELDS.find((f) => f.value === fieldValue);
   if (!def) return null;
+  if (def.options) return def.options[0].value;
   if (def.type === 'boolean') return true;
   if (def.type === 'number') return 1;
   return '';
