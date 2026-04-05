@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import { unstable_noStore as noStore } from 'next/cache';
 import { db } from '@/lib/db';
 import { emailSendLogs, emailAutomations, emailCampaigns } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
@@ -20,6 +21,7 @@ function fmt(d: Date | null) {
 }
 
 export default async function LogsPage() {
+  noStore();
   const rows = await db
     .select({
       id: emailSendLogs.id,
