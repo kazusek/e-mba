@@ -7,8 +7,8 @@ import {
   AUDIENCE_FIELDS,
   OP_LABELS,
   defaultValueForField,
-} from '@/lib/audiences/evaluate';
-import type { AudienceRules, Condition, RuleOp, RuleOperator } from '@/lib/audiences/evaluate';
+} from '@/lib/audiences/fields';
+import type { AudienceRules, Condition, RuleOp, RuleOperator } from '@/lib/audiences/fields';
 
 type ConditionRow = Condition & { uid: string };
 
